@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jellyfin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jellyfin
+  template:
+    metadata:
+      labels:
+        app: jellyfin
+    spec:
+      containers:
+        - name: jellyfin
+          image: jellyfin/jellyfin:latest
+          env:
+            - name: JELLYFIN_IP
+              valueFrom:
+                configMapKeyRef:
+                  name: k3s-configmap
+                  key: JELLYFIN_IP
+            - name: NAS_IP
+              valueFrom:
+                configMapKeyRef:
+                  name: k3s-configmap
+                  key: NAS_IP
+            - name: NFS_PATH
+              valueFrom:
+                configMapKeyRef:
+                  name: k3s-configmap
+                  key: NFS_PATH
+          ports:
+            - containerPort: 8096
+          securityContext:
+            privileged: true # Needed for GPU access
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: cache
+              mountPath: /cache
+            - name: media
+              mountPath: /media
+            - name: dri
+              mountPath: /dev/dri
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: jellyfin-config-pvc
+        - name: cache
+          persistentVolumeClaim:
+            claimName: jellyfin-cache-pvc
+        - name: media
+          persistentVolumeClaim:
+            claimName: jellyfin-media-pvc
+        - name: dri
+          hostPath:
+            path: /dev/dri # Mount /dev/dri from the host
+            type: Directory

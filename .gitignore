@@ -1,0 +1,6 @@
+.DS_Store
+.env
+k3s-configmap.yaml
+jellyfin-loadbalancer.yaml
+jellyfin-media-pv.yaml
+nfs-storageclass.yaml
